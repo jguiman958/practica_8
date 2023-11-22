@@ -28,4 +28,11 @@ rm -rf /var/www/html/prestashop
 # Movemos el contenido de prestashop a /var/www/html
 mv -f /tmp/prestashop /var/www/html
 
+# Damos permisos al usuario de apache para que pueda acceder al contenido de html.
+chown www-data:www-data /var/www/html
 
+# Añadimos variables a  la configuración de php, para configurarlo..
+
+sed -i "s/memory_limit = 128M/$MEMORY_LIMIT/" /etc/php/8.1/apache2/php.ini
+sed -i "s/post_max_size = 8M/$POST_MAX_SIZE/" /etc/php/8.1/apache2/php.ini
+sed -i "s/upload_max_filesize = 2M/$UPLOAD_MAX_FILESIZE/" /etc/php/8.1/apache2/php.ini
