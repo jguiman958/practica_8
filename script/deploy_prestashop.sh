@@ -36,3 +36,25 @@ chown www-data:www-data /var/www/html
 sed -i "s/memory_limit = 128M/$MEMORY_LIMIT/" /etc/php/8.1/apache2/php.ini
 sed -i "s/post_max_size = 8M/$POST_MAX_SIZE/" /etc/php/8.1/apache2/php.ini
 sed -i "s/upload_max_filesize = 2M/$UPLOAD_MAX_FILESIZE/" /etc/php/8.1/apache2/php.ini
+sed -i "s/;max_input_vars = 1000/$MAX_INPUT_VARS/" /etc/php/8.1/apache2/php.ini
+sed -i "s/^\s*;\(max_input_vars = 5000\)/\1/" /etc/php/8.1/apache2/php.ini
+
+# Reiniciamos apache2
+systemctl restart apache2
+
+# Instalamos las extensiones necesarias para prestashop.
+apt install php-curl -y
+
+apt install php-gd -y
+
+apt install php-intl -y
+
+apt install php-mbstring -y
+
+apt install php-xml -y
+
+apt install php-zip -y
+
+# Reiniciamos el servicio de apache.
+systemctl restart apache2
+
