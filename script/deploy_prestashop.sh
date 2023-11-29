@@ -11,62 +11,22 @@ apt update
 source .env
 
 # Borramos el contenido de /tmp
-rm -rf /tmp/v1.1.zip*
+rm -rf /tmp/prestashop_8.1.2.zip
 
-# Descargamos el codigo fuente de la herramienta para comprobar el estado del servidor.
-wget https://github.com/PrestaShop/php-ps-info/archive/refs/tags/v1.1.zip -P /tmp
+# Descargamos el codigo fuente de prestashop
+wget https://github.com/PrestaShop/PrestaShop/releases/download/8.1.2/prestashop_8.1.2.zip -P /tmp
 
-# Instalamos el programa para descomprimir unzip
-apt install unzip -y
+# Borramos el contenid de html
+rm -rf /var/www/html/*
 
-# Descomprimimos la herramienta para comprobar el estado del servidor en /var/www/html.
-unzip -u /tmp/v1.1.zip -d /tmp/prestashop
+# Descomprimimos el .zip en /var/www/html
+unzip -u /tmp/prestashop_8.1.2.zip -d /var/www/html
 
-# Eliminamos el contenido de la herramienta para comprobar el estado del servidor.  
-rm -rf /var/www/html/prestashop
+# Eliminamos instalaciones previas de prestashop
+rm -rf /var/www/html/*
 
 # Movemos el contenido de prestashop a /var/www/html
-mv -f /tmp/prestashop /var/www/html
-
-# Damos permisos al usuario de apache para que pueda acceder al contenido de html.
-chown www-data:www-data /var/www/html
-
-# Añadimos variables a  la configuración de php, para configurarlo..
-
-sed -i "s/memory_limit = 128M/$MEMORY_LIMIT/" /etc/php/8.1/apache2/php.ini
-sed -i "s/post_max_size = 8M/$POST_MAX_SIZE/" /etc/php/8.1/apache2/php.ini
-sed -i "s/upload_max_filesize = 2M/$UPLOAD_MAX_FILESIZE/" /etc/php/8.1/apache2/php.ini
-sed -i "s/;max_input_vars = 1000/$MAX_INPUT_VARS/" /etc/php/8.1/apache2/php.ini
-sed -i "s/^\s*;\(max_input_vars = 5000\)/\1/" /etc/php/8.1/apache2/php.ini
-
-# Reiniciamos apache2
-systemctl restart apache2
-
-# Instalamos las extensiones necesarias para prestashop.
-apt install php-curl -y
-
-apt install php-gd -y
-
-apt install php-intl -y
-
-apt install php-mbstring -y
-
-apt install php-xml -y
-
-apt install php-zip -y
-
-# Reiniciamos el servicio de apache.
-sudo systemctl restart apache2
-
-# Creación de la base de datos para prestashop.
-mysql -u root <<< "DROP DATABASE IF EXISTS $PRESTASHOP_DB_NAME"
-mysql -u root <<< "CREATE DATABASE $PRESTASHOP_DB_NAME"
-mysql -u root <<< "DROP USER IF EXISTS $PRESTASHOP_DB_USER@$IP_CLIENTE_MYSQL"
-mysql -u root <<< "CREATE USER $PRESTASHOP_DB_USER@$IP_CLIENTE_MYSQL IDENTIFIED BY '$PRESTASHOP_DB_PASSWORD'"
-mysql -u root <<< "GRANT ALL PRIVILEGES ON $PRESTASHOP_DB_NAME.* TO $PRESTASHOP_DB_USER@$IP_CLIENTE_MYSQL"
-
-# Reiniciamos mysql.
-systemctl restart mysql
+mv -f /tmp/PrestaShop-8.1.2  /var/www/html/
 
 # Instalamos prestashop.
 php index_cli.php 
@@ -79,3 +39,10 @@ php index_cli.php
     --email=$PRESTASHOP_EMAIL \
     --password=$PRESTASHOP_PASSWORD 
     --ssl=1
+
+# Damos permisos a www-data.
+chown www-data:www-data /var/www/html
+
+# Reiniciamos apache2
+systemctl restart apache2
+
