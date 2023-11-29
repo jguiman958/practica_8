@@ -45,4 +45,3 @@ chown www-data:www-data /var/www/html
 
 # Reiniciamos apache2
 systemctl restart apache2
-
