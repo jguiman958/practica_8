@@ -30,7 +30,7 @@ sudo apt install php libapache2-mod-php php-mysql -y
 sudo systemctl restart apache2
 
 # Copiamos el arhivo de prueba de php
-sudo cp ../php/index.php /var/www/html
+sudo cp ../php/phpinfo.php /var/www/html
 
 # Modificamos el propietario y el grupo del directo /var/www/html
 sudo chown -R www-data:www-data /var/www/html
