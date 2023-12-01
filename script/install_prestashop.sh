@@ -4,17 +4,14 @@
 set -x
 
 # Actualizamos los repos
-
 apt update -y
 
-# Actualizar paquetes 
-
-#apt upgrade -y
-
+# Cargamos el contenido del fichero .env
 source .env
 
+# Instalamos prestashop
 php /var/www/html/install/index_cli.php \
-   --domain=$DOMINIO \
+   --domain=$CERTIFICATE_DOMAIN \
    --db_server=$PRESTASHOP_DB_HOST \
    --db_name=$PRESTASHOP_DB_NAME \
    --db_user=$PRESTASHOP_DB_USER \
@@ -22,4 +19,3 @@ php /var/www/html/install/index_cli.php \
    --email=$PRESTASHOP_EMAIL \
    --language=es \
    --ssl=1 \
-
