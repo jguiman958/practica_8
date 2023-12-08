@@ -1,10 +1,7 @@
 # Práctica_8.- Instalación de prestashop.
 ## Primero tenemos que instalar la pila lamp.
-### Aquí hemos contado con la creación de una pila lamp, la cual contiene linux (S.O), apache, mysql, php:
+### Aquí hemos contado con la creación de una pila lamp, la cual contiene linux (S.O), apache, mysql, php.
 
-Donde, como base de la pila lamp vamos a instalar wordpress, desde la raiz hasta en un directorio propio.
-#
-![Alt text](imagenes/Captura.PNG)
 ### Con esto, buscamos hacer un despligue de aplicaciones.
 
 # Muestra todos los comandos que se han ejeutado.
