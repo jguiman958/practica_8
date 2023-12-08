@@ -326,11 +326,24 @@ sed -i "s/post_max_size = 8M/post_max_size = 128M/" /etc/php/8.1/apache2/php.ini
 sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 128M/" /etc/php/8.1/apache2/php.ini
 ```
 
+Configuramos el fichero php.ini para optimizar el funcionamiento del servidor, para que prestashop, funcione sin errores, ya que si intentamos instalarlo sin configurar los parametros de ese fichero, no dejará instalarlo.
+
+```
+# Variables para la configuración de php del archivo php.ini
+
+MEMORY_LIMIT="memory_limit = 256M"
+UPLOAD_MAX_FILESIZE="upload_max_filesize = 128M"
+POST_MAX_SIZE="post_max_size = 128M"
+MAX_INPUT_VARS=";max_input_vars = 5000"
+```
+
 ## Reiniciamos apache
 
 ```
 systemctl restart apache2
 ```
+
+Reiniciamos el servidor de apache2.
 
 ## Cambiamos los permisos
 
@@ -338,7 +351,9 @@ systemctl restart apache2
 chown -R www-data:www-data /var/www/html/*
 ```
 
-## Instalamos Prestashop ubicandonos en la ruta donde se encuentra dicho fichero de instalacion
+Hacemos propietario al usuario de apache sobre el contenido de html para que el usuario de apache pueda cargarlo.
+
+## Instalamos Prestashop ubicandonos en la ruta donde se encuentra dicho fichero de instalaci´0n
 
 ```
 php /var/www/html/install/index_cli.php \
@@ -357,8 +372,55 @@ php /var/www/html/install/index_cli.php \
     --language=es \
     --ssl=1
 ```
+
+Aquí ya comenzamos la instalación de prestashop, teniendo en cuenta lo siguiente:
+
+```
+# Instalación de prestashop.
+#-----------------------
+PS_NAME=Prestashop
+
+PS_COUNTRY=ES
+#-----------------------
+PS_FIRSTNAME=Juanjo
+
+PS_LASTNAME="Guirado Mañas"
+
+PS=prestashop@prestashop.com
+#-------------------------
+PS_PREFIX=PSJG_
+
+PS_PASSWORD=prestashop
+#-----------------------------------#
+
+# Variables para el certificado.
+CERTIFICATE_EMAIL=demo@demo.es
+
+CERTIFICATE_DOMAIN=hipherion.ddns.net
+
+#Base de datos
+PS_DB_HOST=localhost
+
+PS_DB_NAME=prestashop
+
+PS_DB_USER=pr_user
+
+PS_DB_PASSWORD=pr_pass
+
+CERTIFICATE_EMAIL=demo@demo.es
+
+CERTIFICATE_DOMAIN=hipherion.ddns.net
+
+--ssl=1
+
+```
+
+Necesitamos esa información, para poder instalar prestashop de forma correcta y sin que de errores de servidor, ojo importante habilitar SSL ya que si no se habilita dará errores de incompatibilidad con nuestro certificado, y se instalará sí, pero presentará errores.
+
 ## Borramos directorio install por seguridad
 
 ```
 rm -rf /var/www/html/install/
 ```
+
+Borramos el directorio install para que no se pueda acceder desde el navegador, y de detalles deterioren la seguridad.
