@@ -140,42 +140,172 @@ chown -R www-data:www-data /var/www/html
 ```
 
 # Despliegue de prestashop.
+Ahora toca realizar el despliegue de prestashop, el cual harán falta satisfacer ciertas configuraciones previas a la instalación de prestashop.
+## Actualizamos los repositorios
 
-# Actualizamos los repositorios
+```
 apt update
+```
+Necesario para evitar errores a la hora de instalar programas.
 
-# Incluimos las variables env
+## Incluimos las variables env
+
+```
 source .env
+```
 
-# Creamos la base de datos y el usuario para prestashop
+Incorporamos las variables:
+```
+# Configuramos variables
+#-----------------------------#
+#Base de datos
+PS_DB_HOST=localhost
+
+PS_DB_NAME=prestashop
+
+PS_DB_USER=pr_user
+
+PS_DB_PASSWORD=pr_pass
+
+IP_CLIENTE_MYSQL=localhost
+
+#--------------------------------#
+
+# Instalación de prestashop.
+#-----------------------
+PS_NAME=Prestashop
+
+PS_COUNTRY=ES
+#-----------------------
+PS_FIRSTNAME=Juanjo
+
+PS_LASTNAME="Guirado Mañas"
+
+PS=prestashop@prestashop.com
+#-------------------------
+PS_PREFIX=PSJG_
+
+PS_PASSWORD=prestashop
+#-----------------------------------#
+
+# Variables para el certificado.
+CERTIFICATE_EMAIL=demo@demo.es
+
+CERTIFICATE_DOMAIN=hipherion.ddns.net
+
+# Variables para la configuración de php del archivo php.ini
+
+MEMORY_LIMIT="memory_limit = 256M"
+UPLOAD_MAX_FILESIZE="upload_max_filesize = 128M"
+POST_MAX_SIZE="post_max_size = 128M"
+MAX_INPUT_VARS=";max_input_vars = 5000"
+```
+
+Variables necesarías para la instalación de prestashop.
+
+## Creamos la base de datos y el usuario para prestashop
+
+```
 mysql -u root <<< "DROP DATABASE IF EXISTS $PS_DB_NAME"
 mysql -u root <<< "CREATE DATABASE $PS_DB_NAME"
 mysql -u root <<< "DROP USER IF EXISTS $PS_DB_USER@$IP_CLIENTE_MYSQL"
 mysql -u root <<< "CREATE USER $PS_DB_USER@$IP_CLIENTE_MYSQL IDENTIFIED BY '$PS_DB_PASSWORD'"
 mysql -u root <<< "GRANT ALL PRIVILEGES ON $PS_DB_NAME.* TO $PS_DB_USER@$IP_CLIENTE_MYSQL"
+```
 
-#Borramos descargas previas
+Creamos la base de datos de prestashop, donde conectará a la misma máquina, es decir, al localhost.
+
+Se usan estas variables:
+
+```
+#Base de datos
+PS_DB_HOST=localhost
+
+PS_DB_NAME=prestashop
+
+PS_DB_USER=pr_user
+
+PS_DB_PASSWORD=pr_pass
+
+IP_CLIENTE_MYSQL=localhost
+```
+
+## Borramos descargas previas
+
+```
 rm -rf /tmp/prestashop_8.1.2.zip
+```
 
-#Descargamos el instalador de prestashop.
+Borramos descargas previas de prestashop.
+
+## Descargamos el instalador de prestashop.
+
+```
 wget https://github.com/PrestaShop/PrestaShop/releases/download/8.1.2/prestashop_8.1.2.zip -P /tmp
+```
 
-#Instalar unzip
+Obtenemos el codigo fuente de prestashop, y lo mandamos al directorio tmp.
+
+## Instalar unzip
+
+```
 apt install unzip -y
+```
 
-#Eliminamos instalaciones previas
+Instalamos unzip para descomprimir el instalador.
+
+## Eliminamos instalaciones previas
+
+```
 rm -rf /var/www/html/*
+```
 
-#Copiamos el phppsinfo para comprobaciones
+Eliminamos instalaciones previas del directorio html.
+
+## Copiamos el phppsinfo para comprobaciones
+
+```
 cp ../php/phpinfo.php /var/www/html
+```
+Copiamos el fichero phpinfo.php al directorio html para visualizar si esta bien configurado el servidor, para la instalación de prestashop.
+```
+<?php
 
-#Descomprimimos el archivo y movemos su contenido
+class PhpPsInfo
+{
+    protected $login;
+    protected $password;
+
+    const DEFAULT_PASSWORD = 'prestashop';
+    const DEFAULT_LOGIN = 'prestashop';
+
+    const TYPE_OK = true;
+    const TYPE_ERROR = false;
+    const TYPE_WARNING = null;
+            ...
+```
+
+Este es el contenido que presenta ese fichero.
+
+## Descomprimimos el archivo y movemos su contenido
+
+```
 unzip -u /tmp/prestashop_8.1.2.zip -d /tmp
+```
 
-#Y muevo el contenido que contiene el instalador de prestashop, llamado prestashop.zip a /var/www/html
+Descomprimimos el fichero de instalación en tmp.
+
+## Y muevo el contenido que contiene el instalador de prestashop, llamado prestashop.zip a /var/www/html
+
+```
 unzip -u /tmp/prestashop.zip -d /var/www/html
+```
 
-#Instalamos los paquetes necesarios de php
+Y descomprimimos el contenido de prestashop.zip ubicado en el instalador, mandandolo al directorio html, mediante la opcion -d.
+
+## Instalamos los paquetes necesarios de php
+
+```
 apt install php-bcmath -y 
 apt install php-gd -y
 apt install php-intl -y
@@ -183,20 +313,34 @@ apt install php-zip -y
 apt install php-curl -y
 apt install php-mbstring -y
 apt install php-dom php-xml -y
+```
 
-# Cambiamos las variables del fichero php.ini de apache 2 por estas variables.
+Instalamos los paquetes de php para que funcione prestashop.
+
+## Cambiamos las variables del fichero php.ini de apache 2 por estas variables.
+
+```
 sed -i "s/;max_input_vars = 1000/max_input_vars = 5000/" /etc/php/8.1/apache2/php.ini
 sed -i "s/memory_limit = 128M/memory_limit = 256M/" /etc/php/8.1/apache2/php.ini
 sed -i "s/post_max_size = 8M/post_max_size = 128M/" /etc/php/8.1/apache2/php.ini
 sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 128M/" /etc/php/8.1/apache2/php.ini
+```
 
-#Reiniciamos apache
+## Reiniciamos apache
+
+```
 systemctl restart apache2
+```
 
-#Cambiamos los permisos
+## Cambiamos los permisos
+
+```
 chown -R www-data:www-data /var/www/html/*
+```
 
-#Instalamos Prestashop ubicandonos en la ruta donde se encuentra dicho fichero de instalacion
+## Instalamos Prestashop ubicandonos en la ruta donde se encuentra dicho fichero de instalacion
+
+```
 php /var/www/html/install/index_cli.php \
     --name=$PS_NAME \
     --country=$PS_COUNTRY \
@@ -212,11 +356,9 @@ php /var/www/html/install/index_cli.php \
     --email=$CERTIFICATE_EMAIL \
     --language=es \
     --ssl=1
+```
+## Borramos directorio install por seguridad
 
-#Borramos directorio install por seguridad
+```
 rm -rf /var/www/html/install/
 ```
-Necesitamos instalar composer para poder instalar prestashop mas adelante, para ello tenemos que situarnos en el directorio /var/www/html y ejecutar la sentencia desde ahí.
-
-## Instalación de prestashop.
-
