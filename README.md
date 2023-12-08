@@ -139,164 +139,82 @@ cp ../php/index.php /var/www/html
 chown -R www-data:www-data /var/www/html
 ```
 
-# Desplegamos prestashop con las configuraciones necesarias para instalarlo.
-## Actualizamos los reposositorios
+# Despliegue de prestashop.
 
-```
-apt update -y
-```
-Actualizamos repositorios para, a la hora de instalar paquetes no haya fallos en la instalación.
+# Actualizamos los repositorios
+apt update
 
-## Importación de las variables
-
-```
+# Incluimos las variables env
 source .env
-```
-Cargamos las variables en deploy_prestashop.
 
-## Instalación de extensiones de PHP:
-```
-apt install php-curl -y
+# Creamos la base de datos y el usuario para prestashop
+mysql -u root <<< "DROP DATABASE IF EXISTS $PS_DB_NAME"
+mysql -u root <<< "CREATE DATABASE $PS_DB_NAME"
+mysql -u root <<< "DROP USER IF EXISTS $PS_DB_USER@$IP_CLIENTE_MYSQL"
+mysql -u root <<< "CREATE USER $PS_DB_USER@$IP_CLIENTE_MYSQL IDENTIFIED BY '$PS_DB_PASSWORD'"
+mysql -u root <<< "GRANT ALL PRIVILEGES ON $PS_DB_NAME.* TO $PS_DB_USER@$IP_CLIENTE_MYSQL"
 
-apt install php-bcmath -y 
-
-apt install php-gd -y 
-
-apt install php-intl -y 
-
-apt install php-zip -y
-
-apt install memcached -y
-
-apt install libmemcached-tools -y
-
-apt install php-mbstring -y
-
-apt install php-dom php-xml
-```
-Instalamos las extensiones para prestashop.
-
-## Reiniciamos el servicio de apache2
-```
-systemctl restart apache2
-```
-Reiniciamos prestashop para que se carguen los cambios.
-
-## Configuración en php
-```
-sed -i "s/memory_limit = 128M/$MEMORY_LIMIT/" /etc/php/8.1/apache2/php.ini
-sed -i "s/upload_max_filesize = 2M/$UPLOAD_MAX_FILESIZE/" /etc/php/8.1/apache2/php.ini
-sed -i "s/max_input_vars = 1000/$MAX_INPUT_VARS/" /etc/php/8.1/apache2/php.ini
-sed -i "s/post_max_size = 8M/$POST_MAX_SIZE/" /etc/php/8.1/apache2/php.ini
-```
-
-Cargamos en el archivo de configuración de php --> php.ini las siguientes variables mediante el comando sed.
-
-## Reinciar el siguiente archivo para que se aplique la configuración:
-```
-systemctl restart apache2
-```
-
-Reiniciamos apache2 para que carguen las actualizaciones de ese fichero.
-
-## Borramos el instalador de prestashop.
-
-```
+#Borramos descargas previas
 rm -rf /tmp/prestashop_8.1.2.zip
-```
-Borramos el instalador del directorio /tmp
-## Descargo el codigo fuente de prestashop en /tmp
 
-```
+#Descargamos el instalador de prestashop.
 wget https://github.com/PrestaShop/PrestaShop/releases/download/8.1.2/prestashop_8.1.2.zip -P /tmp
-```
-Obtenemos el instalador en el directorio tmp.
 
-## Borramos el contenido de html
+#Instalar unzip
+apt install unzip -y
 
-```
+#Eliminamos instalaciones previas
 rm -rf /var/www/html/*
-```
 
-Borramos todo el contenido para instalaciones futuras.
-
-## Descomprimos  el instalador de prestashop en /var/www/html
-
-```
-unzip /tmp/prestashop_8.1.2.zip -d /var/www/html
-```
-Descomprimimos en /var/www/html el archivo de instalación de prestashop.
-
-## Cambiamos el propietario de forma recursiva para el contenido de html
-
-```
-chown  www-data:www-data /var/www/html/* -R
-```
-Cambiamos de forma recursiva los propietarios del contenido de html.
-
-## Creacion de usuario para la base de datos de Prestashop y creación de la base de datos.
-
-```
-mysql -u root <<< "DROP DATABASE IF EXISTS $PRESTASHOP_DB_NAME"
-mysql -u root <<< "CREATE DATABASE $PRESTASHOP_DB_NAME"
-mysql -u root <<< "DROP USER IF EXISTS '$PRESTASHOP_DB_USER'@'%'"
-mysql -u root <<< "CREATE USER '$PRESTASHOP_DB_USER'@'%'IDENTIFIED BY '$PRESTASHOP_DB_PASSWORD'"
-mysql -u root <<< "GRANT ALL PRIVILEGES ON $PRESTASHOP_DB_NAME.* TO '$PRESTASHOP_DB_USER'@'%'"
-```
-
-Creamos la base de datos para prestashop.
-
-## Reiniciamos el servicio de mysql.
-```
-systemctl restart mysql.service
-```
-
-Es necesario reiniciar el servicio para que se carguen los cambios de la creación de la base de datos.
-
-## Copio el contenido de phpinfo.php con el dashboard de configuraciones de prestashop.
-
-```
+#Copiamos el phppsinfo para comprobaciones
 cp ../php/phpinfo.php /var/www/html
-```
 
-Copiamos el contenido de phpinfo.php a /var/www/html para cargar el contenido de la visualizacion de las configuraciones en /var/www/html y poder visualizarlo desde internet.
+#Descomprimimos el archivo y movemos su contenido
+unzip -u /tmp/prestashop_8.1.2.zip -d /tmp
 
-## Reinicio el servicio de apache2
+#Y muevo el contenido que contiene el instalador de prestashop, llamado prestashop.zip a /var/www/html
+unzip -u /tmp/prestashop.zip -d /var/www/html
 
-```
+#Instalamos los paquetes necesarios de php
+apt install php-bcmath -y 
+apt install php-gd -y
+apt install php-intl -y
+apt install php-zip -y
+apt install php-curl -y
+apt install php-mbstring -y
+apt install php-dom php-xml -y
+
+# Cambiamos las variables del fichero php.ini de apache 2 por estas variables.
+sed -i "s/;max_input_vars = 1000/max_input_vars = 5000/" /etc/php/8.1/apache2/php.ini
+sed -i "s/memory_limit = 128M/memory_limit = 256M/" /etc/php/8.1/apache2/php.ini
+sed -i "s/post_max_size = 8M/post_max_size = 128M/" /etc/php/8.1/apache2/php.ini
+sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 128M/" /etc/php/8.1/apache2/php.ini
+
+#Reiniciamos apache
 systemctl restart apache2
-```
 
-Reiniciamos el servicio de apache2.
+#Cambiamos los permisos
+chown -R www-data:www-data /var/www/html/*
 
-## Tras instalar el deploy, descomprimo prestashop.zip en /var/www/html. --> sudo unzip prestashop.zip *Automatizar*
+#Instalamos Prestashop ubicandonos en la ruta donde se encuentra dicho fichero de instalacion
+php /var/www/html/install/index_cli.php \
+    --name=$PS_NAME \
+    --country=$PS_COUNTRY \
+    --firstname=$PS_FIRSTNAME \
+    --lastname=$PS_LASTNAME\
+    --password=$PS_PASSWORD \
+    --prefix=$PS_PREFIX \
+    --db_server=$PS_DB_HOST \
+    --db_name=$PS_DB_NAME \
+    --db_user=$PS_DB_USER \
+    --db_password=$PS_DB_PASSWORD \
+    --domain=$CERTIFICATE_DOMAIN \
+    --email=$CERTIFICATE_EMAIL \
+    --language=es \
+    --ssl=1
 
-```
-sudo apt install composer -y
-```
-
-## Instalamos el compose.phar en el directorio html 
-```
-cp ../php/composer.phar /var/www/html
-```
-
-## Instalamos el composer.json en el directorio html 
-
-```
-cp ../php/composer.json /var/www/html
-```
-
-## Crear el .json
-
-```
-sudo nano composer.json
-```
-Para crear un archivo .json necesario para instalar prestashop por comandos.
-
-## E instalamos el contenido de ese archivo. 
-
-```
-sudo php composer.phar install
+#Borramos directorio install por seguridad
+rm -rf /var/www/html/install/
 ```
 Necesitamos instalar composer para poder instalar prestashop mas adelante, para ello tenemos que situarnos en el directorio /var/www/html y ejecutar la sentencia desde ahí.
 
